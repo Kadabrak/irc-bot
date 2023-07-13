@@ -3,7 +3,7 @@ import socket
 import time
 import threading
 from commands.wikipedia_search import wiki
-from commands.fouchan_scrap_threads import fourchan
+from commands.fourchan_scrap_threads import fourchan
 from commands.translate_sentence import translate_sentence
 from functionality.get_title import get_title
 from read_file import read_file
@@ -19,26 +19,25 @@ class irc :
         self.connexion = self.connect()
         self.socket = None
         self.connect()
-        self.message()
+        self.recive_data()
         self.socket.sendall(bytes("JOIN "+self.channel+"\n", "UTF-8"))
         time.sleep(0.3)
         for i in self.channel_list:
             self.socket.sendall(bytes("JOIN "+i+"\n", "UTF-8"))
+        self.main()
+        
     def main(self):
         while 1:
-            self.message()
-
-
-         
+            self.recive_data()
+  
     def connect(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.server,6667))
-        sock.setblocking(False)
-        time.sleep(0.3)
+        time.sleep(0.5)
         sock.send(bytes("USER "+self.botnick +" "+self.botnick +" "+self.botnick + " " +self.botnick + "\n", "UTF-8"))
-        time.sleep(0.3)
+        time.sleep(0.5)
         sock.send(bytes("NICK "+self.botnick +"\n", "UTF-8"))
-        time.sleep(0.3)
+        time.sleep(0.5)
         sock.send(bytes("JOIN "+self.channel+"\n", "UTF-8"))
         self.socket = sock
         return sock
@@ -108,21 +107,13 @@ class irc :
                 if i.split(':')[0] == 'https' or i.split(':')[0] == 'http':
                     self.send(get_title(i),channel_message)
                     
-    def message(self):
-        try:
+    def recive_data(self):
             data = self.socket.recv(4096)
             data = "".join(map(chr, data))
             name,mess,line,channel_message,commande = self.get_data_info(data)
             if self.ping_response(line) == None:
                 self.command_response(commande,name,channel_message)
-        except:
-            pass
-
-
-
-  
-
-
+                
 if __name__ == '__main__':
     config = read_file('config.txt')
     for i in config:
