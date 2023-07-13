@@ -3,7 +3,7 @@ import socket
 import time
 import threading
 from commands.wikipedia_search import wiki
-from commands.fourchan_scrap_threads import fourchan
+from commands.fouchan_scrap_threads import fourchan
 from commands.translate_sentence import translate_sentence
 from functionality.get_title import get_title
 from read_file import read_file
@@ -18,20 +18,16 @@ class irc :
         self.channel_list = channel_list
         self.connexion = self.connect()
         self.socket = None
-
-    def main(self):
         self.connect()
         self.message()
         self.socket.sendall(bytes("JOIN "+self.channel+"\n", "UTF-8"))
         time.sleep(0.3)
         for i in self.channel_list:
             self.socket.sendall(bytes("JOIN "+i+"\n", "UTF-8"))
+    def main(self):
         while 1:
-            try:
-                self.message()
+            self.message()
 
-            except KeyboardInterrupt:
-                self.send()
 
          
     def connect(self):
@@ -59,64 +55,69 @@ class irc :
             if i.startswith('PING'):
                 liste = str(i).split(' ')
                 self.socket.sendall(b'PONG %b\r\n' % bytes(liste[1], 'UTF-8'))
-                
-    def message(self):
+                return True
 
-        try:
-            data = self.socket.recv(4096)
-            data = "".join(map(chr, data))
+    def get_data_info(self,data):
             name = data.split('!')[0][1:]
-            mess = data.split(':')[2:]
+            mess = data.strip().split(':')[2:]
+            message = ''
+            for j,i in enumerate(mess):
+                if j != 0:
+                    message = message+":"+i
+                else:
+                   message = message+i
             line =  data.split('\n')
+            commande = message.strip().split(' ')
             try:
                 channel_message = line[0].split(' ')[2]
                 if channel_message == self.botnick:
                     channel_message = name
             except:
                 channel_message = None
-            print(channel_message)
-            message = ''
-            self.ping_response(line)
-            for j,i in enumerate(mess):
-                if j != 0:
-                    message = message+":"+i
-                else:
-                   message = message+i
-            commande = message.strip().split(' ')
-            if commande[0] == '!help':
-                help_file_content = read_file('help.txt')
-                for lines_help_file in help_file_content:
-                    self.send(str(lines_help_file.strip()),str(name))
+            return (name,mess,line,channel_message,commande)
 
-            elif commande[0] == '!wiki':
-                wiki_url = wiki(' '.join(commande[1::]))
-                self.send(wiki_url,channel_message)
-                self.send(get_title(wiki_url),channel_message)
-            elif commande[0] == '!join':
-                self.socket.sendall(bytes("JOIN "+commande[1]+"\n", "UTF-8"))
-            elif commande[0] == '!4chan':
-                commande.append(None)
-                if commande[1] != None:
-                    list_threads = fourchan(5,commande[1])
-                    for i in list_threads:
-                        try:
-                            title = get_title(i)
-                            self.send(str(title+' => '+i),str(name))
-                        except:
-                            self.send(str(i),channel_message)
+    def command_response(self,commande,name,channel_message):
+        if commande[0] == '!help':
+            help_file_content = read_file('help.txt')
+            for lines_help_file in help_file_content:
+                self.send(str(lines_help_file.strip()),str(name))
 
-                else:
-                    self.send(str('no chan specified'),channel_message)
-            elif commande[0] == '!tr':
-                self.send(translate_sentence(commande[1],commande[2],commande[3::]),channel_message)
+        elif commande[0] == '!wiki':
+            wiki_url = wiki(' '.join(commande[1::]))
+            self.send(wiki_url,channel_message)
+            self.send(get_title(wiki_url),channel_message)
+        elif commande[0] == '!join':
+            self.socket.sendall(bytes("JOIN "+commande[1]+"\n", "UTF-8"))
+        elif commande[0] == '!4chan':
+            commande.append(None)
+            if commande[1] != None:
+                list_threads = fourchan(5,commande[1])
+                for i in list_threads:
+                    try:
+                        title = get_title(i)
+                        self.send(str(title+' => '+i),str(name))
+                    except:
+                        self.send(str(i),channel_message)
+
             else:
-                for i in commande:
-                    if i.split(':')[0] == 'https' or i.split(':')[0] == 'http':
-                        self.send(get_title(i),channel_message)
-                
-
+                self.send(str('no chan specified'),channel_message)
+        elif commande[0] == '!tr':
+            self.send(translate_sentence(commande[1],commande[2],commande[3::]),channel_message)
+        else:
+            for i in commande:
+                if i.split(':')[0] == 'https' or i.split(':')[0] == 'http':
+                    self.send(get_title(i),channel_message)
+                    
+    def message(self):
+        try:
+            data = self.socket.recv(4096)
+            data = "".join(map(chr, data))
+            name,mess,line,channel_message,commande = self.get_data_info(data)
+            if self.ping_response(line) == None:
+                self.command_response(commande,name,channel_message)
         except:
             pass
+
 
 
   
@@ -127,9 +128,7 @@ if __name__ == '__main__':
     for i in config:
         i = i.strip().split('=')
         parameter = i[0]
-        print(parameter)
         if parameter == "server":
-            print(i[1])
             server = i[1]
         elif parameter == "nickname":
             nickname = i[1]
@@ -147,3 +146,4 @@ if __name__ == '__main__':
             time.sleep(5)
         except ConnectionAbortedError:
             time.sleep(5)
+   
