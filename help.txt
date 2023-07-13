@@ -1,0 +1,8 @@
+this bot display the title of a web page create by Kadabrak
+commands available:
+- !wiki [word] to get the wikipedia of the word
+- !4chan [board] to get the fivest hot threads
+- !tr [language] [language] [sentence to translate] to translate a sentence
+- !join [chan to join] i join the specific chan
+don't forget 'Si vis pacem para bellum (ty Charlotte)'
+and this is my favorite song: https://www.youtube.com/watch?v=FuSsi-LubGU

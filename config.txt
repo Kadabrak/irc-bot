@@ -1,0 +1,3 @@
+server=[put the server adress here$
+nickname=[type the nick of the bot here]
+channel=[put the different channel here with and ',' between them]
