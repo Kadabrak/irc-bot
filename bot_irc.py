@@ -3,7 +3,7 @@ import socket
 import time
 import threading
 from commands.wikipedia_search import wiki
-from commands.fouchan_scrap_threads import fourchan
+from commands.fourchan_scrap_threads import fourchan
 from commands.translate_sentence import translate_sentence
 from functionality.get_title import get_title
 from read_file import read_file
