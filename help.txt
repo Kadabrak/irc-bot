@@ -1,4 +1,4 @@
-this bot display the title of a web page create by Kadabrak
+this bot display the title of a web page create by lolpop you can found me on #PSYclan
 commands available:
 - !wiki [word] to get the wikipedia of the word
 - !4chan [board] to get the fivest hot threads
